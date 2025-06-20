@@ -24,17 +24,25 @@ module.exports = function switchProfile(profileName) {
   try {
     console.log(chalk.yellow(`🔁 Switching to ${profileName} profile...`));
 
+    // Set global Git identity
     execSync(`git config --global user.name "${profile.name}"`);
     execSync(`git config --global user.email "${profile.email}"`);
 
+    // 🧹 Remove old credentials if exist
+    if (fs.existsSync(GIT_CREDENTIALS_PATH)) {
+      fs.unlinkSync(GIT_CREDENTIALS_PATH);
+    }
+
+    // 💾 Write new GitHub token to .git-credentials
     const credentials = `https://${profile.token}:x-oauth-basic@github.com\n`;
     fs.writeFileSync(GIT_CREDENTIALS_PATH, credentials);
 
+    // 📌 Set git to use credential helper
     execSync(`git config --global credential.helper store`);
 
     console.log(chalk.green(`✅ Now using ${profile.name} <${profile.email}>`));
     console.log(chalk.gray('────────────────────────────────────────────'));
-    console.log(chalk.yellowBright('🚀 Ready to push code!'));
+    console.log(chalk.yellowBright('🚀 Ready to push code with correct GitHub account!'));
     console.log(chalk.white('Use: git init → git remote add origin ... → git push'));
     console.log(chalk.gray('────────────────────────────────────────────'));
 
